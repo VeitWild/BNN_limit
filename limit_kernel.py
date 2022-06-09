@@ -21,7 +21,7 @@ class Kernel_Limit(object):
         phi = self.activation_fct
         N_S = self.N_S
 
-        Sigma_1 = 1/D * alpha[0]*X1 @ X2.T + beta[0] 
+        Sigma_1 = 1/D * alpha[1]*X1 @ X2.T + beta[1] 
 
         Sigma_l = Sigma_1
         
@@ -62,18 +62,18 @@ class Kernel_Limit(object):
         phi = self.activation_fct
         N_S = self.N_S
 
-        Sigma_0 = 1/D * alpha[1]*X1 @ X2.T + beta[1]
+        Sigma_1 = 1/D * alpha[1]*X1 @ X2.T + beta[1]
 
-        Sigma_l = Sigma_0
+        Sigma_l = Sigma_1
 
-        Sigma_small_0 = np.array([[Sigma_0[0,0],Sigma_0[0,1]],[Sigma_0[1,0],Sigma_0[1,1]]])
+        Sigma_small_1 = np.array([[Sigma_1[0,0],Sigma_1[0,1]],[Sigma_1[1,0],Sigma_1[1,1]]])
 
         for n in range(0,N):
             for n_p in range(n,N):
-                Sigma_small_0 = np.array([[Sigma_0[n,n],Sigma_0[n,n_p]],[Sigma_0[n,n_p],Sigma_0[n_p,n_p]]])
-                Sigma_small_l = Sigma_small_0
+                Sigma_small_1 = np.array([[Sigma_1[n,n],Sigma_1[n,n_p]],[Sigma_1[n,n_p],Sigma_1[n_p,n_p]]])
+                Sigma_small_l = Sigma_small_1
 
-                for l in range(1,self.L+1):
+                for l in range(2,self.L+2):
                         
                     eigs, V =np.linalg.eigh(Sigma_small_l+np.eye(2))
 
@@ -89,27 +89,14 @@ class Kernel_Limit(object):
                     trafo_normals = phi(cor_normals) # 2xN_S
                     var_xn = np.square(trafo_normals[0,:]).mean()
                     var_xnp = np.square(trafo_normals[1,:]).mean()
-                    
-                    if n==n_p:
-                        var_xnp = var_xn
 
                     cov_n_np = np.prod(trafo_normals,axis=0).mean()
-                    #print(cov_n_np)
-
-                    #Samples New for the variances
-                    #Didn't make a difference here if you sample the variances or not
-                    #Z1 = np.random.normal(0,1,N_S)
-                    #Z2 = np.random.normal(0,1,N_S)
-                    #N_xn = Sigma_sqrt[0,0]*Z1 + Sigma_sqrt[0,1]*Z2
-                    #N_xnp = Sigma_sqrt[1,0]*Z1 + Sigma_sqrt[1,1]*Z2
-
-                    #var_xn =   np.square(phi(N_xn)).mean()
-                    #var_xnp =  np.square(phi(N_xnp)).mean()
 
                     Sigma_small_l = alpha[l]* np.array([[var_xn,cov_n_np],[cov_n_np,var_xnp]]) + beta[l]
                     Sigma_l[n,n_p] = cov_n_np
-        
-        return Sigma_l
+                    
+        return Sigma_l #this is Sigma_L+1
+
 
 
 
@@ -169,7 +156,7 @@ Z = np.linspace(5,10,N).reshape(-1,1)
 
 #print(k.calculate_covariance2(X,X))
 
-k.plot_function(X,rough=False) # This gives plot of the output of Layer L, not L+1
+#k.plot_function(X,rough=False) # This gives plot of the output of Layer L, not L+1
 #k.plot_function(X,rough=True)
 
 
